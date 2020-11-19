@@ -1,6 +1,6 @@
 {
   "name": "@victorykong/time",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "原生实现时间显示处理器",
   "main": "./dist/index.js",
   "keywords": [
