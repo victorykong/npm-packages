@@ -1,12 +1,21 @@
 {
-  "name": "time",
+  "name": "@victorykong/time",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "原生实现时间显示处理器",
+  "main": "./dist/index.js",
+  "keywords": [
+    "时间处理显示",
+    "时间显示",
+    "年月日天时分秒",
+    "Date"
+  ],
+  "author": "victorykong",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/victorykong/npm-packages/tree/master/time"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "devDependencies": {
+    "typescript": "^4.0.5"
+  }
 }
