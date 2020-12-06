@@ -1,35 +1,41 @@
-interface Template {
-    second?: string | false;
-    minute?: string | false;
-    hour?: string | false;
-    date?: string | false;
-    month?: string | false;
-    year?: string;
-}
+declare type DateType = string | number | Date;
+declare type OptionsType = {
+    rules?: Array<(diff: number, options: {
+        date: number;
+        month: number;
+        year: number;
+    }) => string | false>;
+    isNeedSuffix?: boolean;
+    serverTime?: DateType;
+};
 /**
  * @method 格式化时间显示文本
- * @description 实现格式化时间 & 自定义显示模板（使用switch...case的优先级机制）
  * @param date string | number | Date
- * @param template 时间占位符: %t%，优先级顺序：秒>分>小时>天>月>年，如果设置某个范围为false，请确保符合逻辑，优先级将按顺序往后顺延
- *  - 如果规则不满足， 2020/1/1 2020/1/2 需要显示x月前，显然不合理，将返回空字符串
- * @returns string
- *
- * @enum
- *    YYYY-MM-DD
- * @enum
- *    x秒前/后
- *    x分钟前/后
- *    x小时前/后
- *    x天前/后
- *    x个月前/后
- * @description 不精准的数据
- * 1个月 = 30天
- * 1年 = 365天
- * @description 精准的数据
- * 1分 = 60秒
- * 1小时 = 60分
- * 1天 = 24小时
- * 1年 = 12个月
+ * @param options
+ * {
+ *  rules: 规则配置数组(默认规则不符合时可指定)
+ *  serverTime: 服务器时间（前端从响应头中获取，传入该插件，防止用户系统时间不正确的情况）
+ *  isNeedSuffix: 是否需要后缀
+ * }
+ * @description 目前跨月的天支持的是30天的范围 date
  */
-declare function time2string(dateParams: string | number | Date, { second, minute, hour, date, month, year, }?: Template): string;
+declare function time2string(date: DateType, options?: OptionsType): string;
+declare namespace time2string {
+    var SEC: (diff: number) => string | false;
+    var MIN: (diff: number) => string | false;
+    var HOUR: (diff: number) => string | false;
+    var DATE: (diff: number, { date, month, year }: {
+        date: number;
+        month: number;
+        year: number;
+    }) => string | false;
+    var MONTH: (_: number, { month, year }: {
+        month: number;
+        year: number;
+    }) => string | false;
+    var YEAR: (_: number, { year }: {
+        year: number;
+    }) => string | false;
+    var config: (options: OptionsType) => (date: string | number | Date) => string;
+}
 export default time2string;

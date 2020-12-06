@@ -68,7 +68,7 @@ time2string.config = (options: OptionsType) => (date: DateType) =>
  * }
  * @description 目前跨月的天支持的是30天的范围 date
  */
-export function time2string(date: DateType, options: OptionsType = {}): string {
+function time2string(date: DateType, options: OptionsType = {}): string {
   try {
     let { isNeedSuffix = true, rules, serverTime = new Date() } = options;
 
@@ -135,3 +135,5 @@ export function time2string(date: DateType, options: OptionsType = {}): string {
 
   return ""; // 返回界面的数据默认值为空比较合理
 }
+
+export default time2string;

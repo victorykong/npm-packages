@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * @method 转时间戳
  * @param date string | number | Date
@@ -7,12 +5,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 function time2stamp(date) {
     try {
-        var time = void 0;
+        let time;
         if (date instanceof Date) {
             time = date.getTime();
         }
         else if (typeof date === 'string') {
-            var regex = /(\/|\-)+/g;
+            const regex = /(\/|\-)+/g;
             if (regex.test(date)) {
                 time = new Date(date.replace(regex, '/')).getTime();
             }
@@ -24,7 +22,7 @@ function time2stamp(date) {
             time = date;
         }
         if (isNaN(time))
-            throw new Error("\u65F6\u95F4\u683C\u5F0F\u9519\u8BEF\uFF1A" + date);
+            throw new Error(`时间格式错误：${date}`);
         return time;
     }
     catch (err) {
@@ -32,4 +30,4 @@ function time2stamp(date) {
     }
     return 0;
 }
-exports.default = time2stamp;
+export default time2stamp;
