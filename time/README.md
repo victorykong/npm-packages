@@ -11,8 +11,9 @@
 ### 主要功能：格式化时间显示
 
 - 解决什么问题
-- 常常后端返回的数据是具体的时间。如：2020-12-8 14:00:00，前端需要将其显示为：x(秒|分钟|小时|天|月|年)(前|后)
-- 另一种实现方案：返回时间统计对象。但该场景不合适，因为每次都需要开发者手写判断
+
+  - 常常后端返回的数据是具体的时间。如：2020-12-8 14:00:00，前端需要将其显示为：x(秒|分钟|小时|天|月|年)(前|后)
+  - 另一种实现方案：返回时间统计对象。但该场景不合适，因为每次都需要开发者手写判断
 
 ```javascript
 timeObj = {
@@ -64,24 +65,24 @@ type OptionsType = {
 
 ```ts
 import { time2string } from "@victorykong/time";
+
 time2string("2020-11-11 00:00:00");
 ```
 
 - 更多场景说明：
 
   - time2string 函数（对象）上挂载着默认一些默认规则，可以允许你按需配置使用
-  - time2string.SEC/MIN/HOUR/DATE/MONTH/YEAR
   - time2string 上还拥有一个 config 方法，允许你指定一次规则，可以多处使用
 
   ```ts
   const handleTime = time2string.config({
     rules: [
-      // 时间戳差值: 1815170.796,
-      // 日月年差值: {date: 9, month: 1, year: 0}
-      (...args) => {
-        console.log(args);
-        return "你想要显示的文本";
-      },
+      // 按需获取一些默认规则
+      time2string.SEC,
+      time2string.MIN,
+
+      // 自定义规则
+      (...args) => "你想要显示的文本",
     ],
     isNeedSuffix: false, // 不需要后缀
     serverTime, // 响应头的时间
