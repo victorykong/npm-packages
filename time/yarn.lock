@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+"@victorykong/time@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.npm.taobao.org/@victorykong/time/download/@victorykong/time-1.0.1.tgz#52b676c97cb395be80abf931ee8c8dc6d6c50e80"
+  integrity sha1-UrZ2yXyzlb6Aq/kx7oyNxtbFDoA=
+
 typescript@^4.0.5:
   version "4.0.5"
   resolved "https://registry.npm.taobao.org/typescript/download/typescript-4.0.5.tgz?cache=0&sync_timestamp=1605681999716&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Ftypescript%2Fdownload%2Ftypescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"

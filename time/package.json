@@ -1,8 +1,10 @@
 {
   "name": "@victorykong/time",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "原生实现时间显示处理器",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "keywords": [
     "时间处理显示",
     "时间显示",
@@ -17,5 +19,8 @@
   },
   "devDependencies": {
     "typescript": "^4.0.5"
+  },
+  "dependencies": {
+    "@victorykong/time": "^1.0.1"
   }
 }

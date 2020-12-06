@@ -1,111 +1,137 @@
-import { time2stamp } from './index';
+import getMonthBetween from "./getMonthBetween";
+import { time2stamp } from "@victorykong/time";
 
+type DateType = string | number | Date;
+type OptionsType = {
+  rules?: Array<
+    (
+      diff: number,
+      options: { date: number; month: number; year: number }
+    ) => string | false
+  >;
+  isNeedSuffix?: boolean;
+  serverTime?: DateType;
+};
 
-const SYMBOL = '%t%';
-const MINUTE = 60;
-const HOUR = 60 * MINUTE;
-const DATE = HOUR * 24;
-enum DefaultText {
-    second = '%t%秒',
-    minute = '%t%分钟',
-    hour = '%t%小时',
-    date = '%t%天',
-    month = '%t%个月',
-    year = '%t%',
-}
-interface Template {
-    second?: string | false;
-    minute?: string | false;
-    hour?: string | false;
-    date?: string | false;
-    month?: string | false;
-    year?: string;
-}
+/** 默认规则 */
+/** diff:  时间戳差值 */
+/** date:  日期差值 */
+/** month: 月差值 */
+/** year: 年差值 */
+time2string.SEC = (diff: number) => (diff < 60 ? `${diff}秒` : false);
+time2string.MIN = (diff: number) =>
+  diff < 60 * 60 ? `${diff / 60}分钟` : false;
+time2string.HOUR = (diff: number) =>
+  diff < 60 * 60 * 24 ? `${diff / (60 * 60)}小时` : false;
+time2string.DATE = (
+  diff: number,
+  { date, month, year }: { date: number; month: number; year: number }
+) => {
+  const sameMonth = month === 0 && year === 0 && `${diff / (60 * 60 * 24)}天`; // 同月
+  const crossMonth =
+    date > 0 &&
+    date <= 30 &&
+    month === 1 &&
+    year === 0 &&
+    `${diff / (60 * 60 * 24)}天`; // 跨月天
+  const crossYear =
+    month === 1 &&
+    year === 1 &&
+    date < 31 &&
+    diff / (60 * 60 * 24) < 31 &&
+    `${31 - date}天`; // 跨年天: 兼容12月31日 - 1月1日的情况（12月份一定是31天）&& 基本的时间戳差值不能超过
+  return sameMonth || crossMonth || crossYear || false;
+};
+time2string.MONTH = (
+  _: number,
+  { month, year }: { month: number; year: number }
+) => {
+  const sameYear = month > 0 && month < 12 && year === 0 && `${month}个月`; // 同年
+  const crossYear = month < 12 && year === 1 && `${month}个月`; // 跨年
+  return sameYear || crossYear || false;
+};
+time2string.YEAR = (_: number, { year }: { year: number }) =>
+  year > 0 ? `${year}年` : false;
+
+/** 用户全局配置规则的闭包函数 */
+time2string.config = (options: OptionsType) => (date: DateType) =>
+  time2string(date, options);
+
 /**
  * @method 格式化时间显示文本
- * @description 实现格式化时间 & 自定义显示模板（使用switch...case的优先级机制）
  * @param date string | number | Date
- * @param template 时间占位符: %t%，优先级顺序：秒>分>小时>天>月>年，如果设置某个范围为false，请确保符合逻辑，优先级将按顺序往后顺延
- *  - 如果规则不满足， 2020/1/1 2020/1/2 需要显示x月前，显然不合理，将返回空字符串
- * @returns string
- *
- * @enum
- *    YYYY-MM-DD
- * @enum
- *    x秒前/后
- *    x分钟前/后
- *    x小时前/后
- *    x天前/后
- *    x个月前/后
- * @description 不精准的数据
- * 1个月 = 30天
- * 1年 = 365天
- * @description 精准的数据
- * 1分 = 60秒
- * 1小时 = 60分
- * 1天 = 24小时
- * 1年 = 12个月
+ * @param options
+ * {
+ *  rules: 规则配置数组(默认规则不符合时可指定)
+ *  serverTime: 服务器时间（前端从响应头中获取，传入该插件，防止用户系统时间不正确的情况）
+ *  isNeedSuffix: 是否需要后缀
+ * }
+ * @description 目前跨月的天支持的是30天的范围 date
  */
-function time2string(
-    dateParams: string | number | Date,
-    {
-        second = DefaultText.second,
-        minute = DefaultText.minute,
-        hour = DefaultText.hour,
-        date = DefaultText.date,
-        month = DefaultText.month,
-        year = DefaultText.year,
-    }: Template = {},
-): string {
-    try {
-        const __handler__ = (val: number) => (Math.floor(val) === 0 ? 1 : Math.floor.call(Math, val)); // 非0处理，默认给个1。例如：1秒通过template需要显示为1分钟
-        const __abs__ = Math.abs.bind(Math);
-        const __isShow__ = (conf: string | false | undefined) => !(typeof conf === 'boolean' && conf === false); // 显式传递 false，才明确不显示
-        const __replace__ = (date: string, val: number): string =>
-            `${date.replace(SYMBOL, `${__handler__(val)}`)}${suffix}`;
+export function time2string(date: DateType, options: OptionsType = {}): string {
+  try {
+    let { isNeedSuffix = true, rules, serverTime = new Date() } = options;
 
-        let txt = '',
-            suffix = '';
-        const timestamp = time2stamp(dateParams);
-        const _now = new Date(),
-            _target = new Date(timestamp);
-
-        let diff = __handler__((_now.getTime() - timestamp) / 1000);
-        suffix = diff < 0 ? '后' : '前';
-        diff = __abs__(diff);
-
-        const _month = __abs__(_now.getMonth() - _target.getMonth()); // 预获取月
-        const _year = __abs__(_now.getFullYear() - _target.getFullYear()); // 预获取年
-
-        switch (true) {
-            case diff < MINUTE && __isShow__(second): // <60属于秒范围
-                txt = __replace__(second as string, diff);
-                break;
-            case diff < HOUR && __isShow__(minute): // <60*60属于分钟范围
-                txt = __replace__(minute as string, diff / MINUTE);
-                break;
-            case diff < DATE && __isShow__(hour): // <60*60*24属于小时范围
-                txt = __replace__(hour as string, diff / HOUR);
-                break;
-            // 下面的范围使用综上判断不太准确(偏主观), 所以改用 _now - _target 的时间差
-            case _month === 0 && _year === 0 && __isShow__(date): // 月为0 & 年为0(同月异年)属于天范围
-                txt = __replace__(date as string, diff / DATE);
-                break;
-            case _month > 0 && _month <= 12 && _year === 0 && __isShow__(month): // 12=>月>0 & 年为0属于月范围
-                txt = __replace__(month as string, _month);
-                break;
-            // 默认属于年范围, 显示年/月/日
-            default:
-                let y = __replace__(year as string, timestamp);
-                y = y.substring(0, y.length - 1); // 删除末尾的suffix
-                txt = y.replace(`${timestamp}`, `${new Date(timestamp).toLocaleDateString()}`);
-                break;
-        }
-        return txt;
-    } catch (err) {
-        console.error(err);
+    if (!rules) {
+      rules = [
+        time2string.SEC,
+        time2string.MIN,
+        time2string.HOUR,
+        time2string.DATE,
+        time2string.MONTH,
+        time2string.YEAR,
+      ];
     }
-    return '';
-}
 
-export default time2string
+    const baseTimeStamp = time2stamp(date);
+    const baseTime = new Date(baseTimeStamp);
+    const curTimeStamp = time2stamp(serverTime);
+    const curTime = new Date(curTimeStamp);
+
+    let diff = (curTimeStamp - baseTimeStamp) / 1000;
+    const suffix = diff < 0 ? "后" : "前";
+    diff = Math.abs(diff);
+
+    // 预获取年月日时间差
+    const diff_date = Math.abs(curTime.getDate() - baseTime.getDate());
+    const diff_month = getMonthBetween(curTime, baseTime);
+    const diff_year = Math.abs(curTime.getFullYear() - baseTime.getFullYear());
+
+    let idx = 0;
+    let result;
+
+    while (idx < rules.length) {
+      result = rules[idx](diff, {
+        date: diff_date,
+        month: diff_month,
+        year: diff_year,
+      });
+      idx++; // 按顺序执行
+
+      if (Boolean(result)) {
+        if (typeof result === "string") {
+          const arr = result.match(/\d+(.\d+)?/g); // 小数转整数: 2.xxx月 => 2月
+          if (Array.isArray(arr)) {
+            const [float] = arr;
+            const int = Math.floor(+float);
+            result = result.replace(float, String(int));
+          }
+        }
+        break;
+      }
+    }
+
+    // 容灾方案(灾:计算出来的是 0) & 规则均无满足
+    if (!result || (typeof result === "string" && result.startsWith("0"))) {
+      result = baseTime.toLocaleDateString();
+    } else {
+      result = isNeedSuffix ? result + suffix : result;
+    }
+
+    return result as string;
+  } catch (err) {
+    console.error(err);
+  }
+
+  return ""; // 返回界面的数据默认值为空比较合理
+}
